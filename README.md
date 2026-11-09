@@ -5,7 +5,7 @@ A queue-based Runpod Serverless worker that generates a 512 x 512 PNG from a tex
 ## Requirements
 
 - A Runpod account with credits and an API key.
-- Docker with Buildx and an account with a container registry that Runpod can access.
+- A GitHub account connected to Runpod, or Docker with Buildx and a container registry that Runpod can access.
 - A GPU with sufficient memory. Start with a 16 GB GPU and check availability and pricing in Runpod.
 - [Bruno](https://www.usebruno.com/) to send the requests.
 - Python 3 to save the image and run the local tests.
@@ -13,6 +13,19 @@ A queue-based Runpod Serverless worker that generates a 512 x 512 PNG from a tex
 The model uses the [CreativeML Open RAIL-M license](https://huggingface.co/spaces/CompVis/stable-diffusion-license). Review its terms before distributing the image. The model license is included in the container at `/model/license.txt`.
 
 ## Build and deploy
+
+### Deploy from GitHub
+
+1. Connect your GitHub account in Runpod settings and grant access to this repository.
+2. In Runpod Serverless, create a new endpoint and select this repository, its `main` branch, and the root `Dockerfile`.
+3. Select a queue-based endpoint and a GPU with at least 16 GB of memory.
+4. Set active workers to `0`, max workers to `1`, and the idle timeout to `5` seconds.
+5. Deploy the endpoint and check its Builds tab. Runpod builds the image, stores it in its registry, and deploys it to the endpoint.
+6. Copy the endpoint ID when the build completes.
+
+Runpod's [GitHub integration guide](https://docs.runpod.io/serverless/workers/github-integration) describes its build limits and release process.
+
+### Build the image yourself
 
 Replace `REGISTRY/IMAGE` with your container image name.
 
@@ -27,7 +40,7 @@ In Runpod, create a Serverless endpoint using the container image:
 
 1. Choose a queue-based endpoint and enter `REGISTRY/IMAGE:1.0.0`.
 2. Select a GPU and one GPU per worker.
-3. Set active workers to `0` and max workers to `1`.
+3. Set active workers to `0`, max workers to `1`, and the idle timeout to `5` seconds.
 4. Deploy the endpoint and copy its endpoint ID.
 
 Runpod charges for a worker while it starts, processes jobs, and waits during its idle timeout. Check your balance and the endpoint settings before running requests. See [Runpod Serverless pricing](https://docs.runpod.io/serverless/pricing) and [endpoint settings](https://docs.runpod.io/serverless/endpoints/endpoint-configurations).
@@ -37,9 +50,10 @@ Runpod charges for a worker while it starts, processes jobs, and waits during it
 1. Open the `bruno` folder as a collection in Bruno.
 2. Select the `Runpod` environment and set `endpoint_id` to your endpoint ID.
 3. Set `runpod_api_key` as a secret in the environment. Bruno stores the secret value locally, outside the collection file.
-4. Run **Generate image**. The response contains a job ID, which the collection stores for the next request.
-5. Run **Check status** until the job is `COMPLETED` or a failure status appears. The first request can take longer while the worker starts.
-6. Save the completed response body as `response.json`, then run:
+4. Run **Check endpoint health** to check the connection and worker counts.
+5. Run **Generate image**. The response contains a job ID, which the collection stores for the next request.
+6. Run **Check status** until the job is `COMPLETED` or a failure status appears. The first request can take longer while the worker starts.
+7. Save the completed response body as `response.json`, then run:
 
 ```sh
 python3 scripts/save_image.py response.json image.png
@@ -78,6 +92,17 @@ A completed job includes these fields under `output`:
 
 The safety checker result can be `true`, `false`, or `null`. The seed helps repeat a request, but the output can vary across hardware and library versions.
 
+## Runpod test results
+
+On 9 November 2026, the endpoint ran on an NVIDIA RTX A4500. The requests were sent with Bruno and used seed `42`. The times are Runpod's `delayTime` and `executionTime` values.
+
+| Prompt | Queue delay | Execution | Result |
+| --- | ---: | ---: | --- |
+| A small lighthouse on a rocky coast at sunset, watercolor painting | 90.05 s | 2.66 s | [Lighthouse PNG](examples/lighthouse.png) |
+| A red bicycle leaning against a stone wall in a garden, watercolor painting | 13.99 s | 2.53 s | [Garden PNG](examples/garden.png) |
+
+Both jobs returned `COMPLETED` and a 512 x 512 PNG. An empty prompt returned `FAILED` with `prompt must be a non-empty string.` The request bodies and sanitized results are in [examples/results.json](examples/results.json).
+
 ## Local tests
 
 ```sh
@@ -86,7 +111,7 @@ python3 -m unittest discover -s tests -v
 
 These tests use a simulated model to check input validation, response encoding, and the image-saving script. They do not test GPU inference or a deployed endpoint.
 
-The container also completed an offline CPU inference at 64 x 64 with one step. The full-size request has not yet been tested on Runpod.
+The container also completed an offline CPU inference at 64 x 64 with one step.
 
 ## Troubleshooting
 

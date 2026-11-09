@@ -1,0 +1,36 @@
+{
+  "tested_on": "2026-11-09",
+  "model": "CompVis/stable-diffusion-v1-4",
+  "gpu": "NVIDIA RTX A4500",
+  "results": [
+    {
+      "input": {
+        "prompt": "A small lighthouse on a rocky coast at sunset, watercolor painting",
+        "seed": 42
+      },
+      "status": "COMPLETED",
+      "delayTime_ms": 90051,
+      "executionTime_ms": 2659,
+      "image": "lighthouse.png",
+      "nsfw_content_detected": false
+    },
+    {
+      "input": {
+        "prompt": "A red bicycle leaning against a stone wall in a garden, watercolor painting",
+        "seed": 42
+      },
+      "status": "COMPLETED",
+      "delayTime_ms": 13993,
+      "executionTime_ms": 2529,
+      "image": "garden.png",
+      "nsfw_content_detected": false
+    }
+  ],
+  "invalid_input": {
+    "input": {
+      "prompt": ""
+    },
+    "status": "FAILED",
+    "error": "prompt must be a non-empty string."
+  }
+}

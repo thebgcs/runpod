@@ -1,0 +1,22 @@
+meta {
+  name: Check status
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{base_url}}/{{endpoint_id}}/status/{{job_id}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{runpod_api_key}}
+}
+
+tests {
+  test("The response contains a job status", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody().status).to.be.a("string");
+  });
+}

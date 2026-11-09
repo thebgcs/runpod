@@ -1,0 +1,41 @@
+meta {
+  name: Empty prompt
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{base_url}}/{{endpoint_id}}/run
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{runpod_api_key}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "input": {
+      "prompt": ""
+    }
+  }
+}
+
+script:post-response {
+  const body = res.getBody();
+  if (res.getStatus() === 200 && body.id) {
+    bru.setVar("job_id", body.id);
+  }
+}
+
+tests {
+  test("The endpoint accepts the job for validation", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody().id).to.be.a("string");
+  });
+}

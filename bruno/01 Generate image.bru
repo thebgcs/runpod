@@ -1,0 +1,42 @@
+meta {
+  name: Generate image
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{base_url}}/{{endpoint_id}}/run
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{runpod_api_key}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "input": {
+      "prompt": "A small lighthouse on a rocky coast at sunset, watercolor painting",
+      "seed": 42
+    }
+  }
+}
+
+script:post-response {
+  const body = res.getBody();
+  if (res.getStatus() === 200 && body.id) {
+    bru.setVar("job_id", body.id);
+  }
+}
+
+tests {
+  test("The endpoint accepts the job", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody().id).to.be.a("string");
+  });
+}

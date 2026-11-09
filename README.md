@@ -7,7 +7,7 @@ A queue-based Runpod Serverless worker that generates a 512 x 512 PNG from a tex
 - A Runpod account with credits and an API key.
 - A GitHub account connected to Runpod, or Docker with Buildx and a container registry that Runpod can access.
 - A GPU with sufficient memory. Start with a 16 GB GPU and check availability and pricing in Runpod.
-- [Bruno](https://www.usebruno.com/) to send the requests.
+- [Bruno API client](https://www.usebruno.com/) to send the requests.
 - Python 3 to save the image and run the local tests.
 
 The model uses the [CreativeML Open RAIL-M license](https://huggingface.co/spaces/CompVis/stable-diffusion-license). Review its terms before distributing the image. The model license is included in the container at `/model/license.txt`.
@@ -45,11 +45,11 @@ In Runpod, create a Serverless endpoint using the container image:
 
 Runpod charges for a worker while it starts, processes jobs, and waits during its idle timeout. Check your balance and the endpoint settings before running requests. See [Runpod Serverless pricing](https://docs.runpod.io/serverless/pricing) and [endpoint settings](https://docs.runpod.io/serverless/endpoints/endpoint-configurations).
 
-## Send a request with Bruno
+## Send a request with the Bruno API client
 
-1. Open the `bruno` folder as a collection in Bruno.
+1. Open the `bruno` folder as a collection in the Bruno API client.
 2. Select the `Runpod` environment and set `endpoint_id` to your endpoint ID.
-3. Set `runpod_api_key` as a secret in the environment. Bruno stores the secret value locally, outside the collection file.
+3. Set `runpod_api_key` as a secret in the environment. The API client stores the secret value locally, outside the collection file.
 4. Run **Check endpoint health** to check the connection and worker counts.
 5. Run **Generate image**. The response contains a job ID, which the collection stores for the next request.
 6. Run **Check status** until the job is `COMPLETED` or a failure status appears. The first request can take longer while the worker starts.
@@ -94,7 +94,7 @@ The safety checker result can be `true`, `false`, or `null`. The seed helps repe
 
 ## Runpod test results
 
-On 9 November 2026, the endpoint ran on an NVIDIA RTX A4500. The requests were sent with Bruno and used seed `42`. The times are Runpod's `delayTime` and `executionTime` values.
+On 9 November 2026, the endpoint ran on an NVIDIA RTX A4500. The requests were sent with the [Bruno API client](https://www.usebruno.com/) and used seed `42`. The times are Runpod's `delayTime` and `executionTime` values.
 
 | Prompt | Queue delay | Execution | Result |
 | --- | ---: | ---: | --- |
@@ -118,6 +118,6 @@ The container also completed an offline CPU inference at 64 x 64 with one step.
 - **The job stays in the queue:** check worker availability, endpoint limits, and the worker logs in Runpod.
 - **The worker fails during startup:** check the image pull, model loading, GPU compatibility, and logs.
 - **The job returns an error:** check the prompt, seed, and worker logs. A successful HTTP response can still contain a job error.
-- **The saved image is missing:** copy the full completed response body from Bruno and run the save command before the result expires.
+- **The saved image is missing:** copy the full completed response body from the API client and run the save command before the result expires.
 
 Model: [CompVis/stable-diffusion-v1-4](https://huggingface.co/CompVis/stable-diffusion-v1-4). Runpod worker reference: [Handler functions](https://docs.runpod.io/serverless/workers/handler-functions).
